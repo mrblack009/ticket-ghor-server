@@ -1,4 +1,3 @@
-```markdown
 # TicketGhor (Server-Side) - Ticket Booking REST API
 
 This repository houses the production-ready Express.js REST API for **TicketGhor**, an Online Ticket Booking Platform. Built using Node.js and the native MongoDB driver, this server securely drives content, manages user registration data, validates ticket states, and generates inventory balances cleanly.
