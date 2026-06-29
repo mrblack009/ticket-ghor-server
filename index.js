@@ -692,6 +692,20 @@ async function run() {
 
 
 
+        
+
+        // Endpoint to patch status on validation completion
+        app.patch("/bookings/update-status/:id", async (req, res) => {
+            const { id } = req.params;
+            const { status, transactionId } = req.body;
+
+            // Database update logic here (e.g., MongoDB, PostgreSQL)
+            // Update booking state setting bookingStatus = status, transactionId = transactionId
+            res.send({ success: true });
+        });
+
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
