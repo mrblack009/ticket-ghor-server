@@ -29,7 +29,8 @@ async function run() {
         await client.connect();
 
         const usersCollection = client.db("ticketBariDB").collection("usersCollection");
-
+        const ticketsCollection = client.db("ticketBariDB").collection("ticketsCollection");
+        const bookingsCollection = client.db("ticketBariDB").collection("bookingsCollection");
 
         // users releated api
         app.get("/users", async (req, res) => {
@@ -132,6 +133,161 @@ async function run() {
         });
 
 
+        // tickets reletaed api
+        app.get("/tickets/admin", async (req, res) => {
+            try {
+                const result = await ticketsCollection.find().toArray();
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ error: "Failed to fetch Users Data" });
+            }
+        })
+        app.post("/tickets", async (req, res) => {
+            try {
+                const ticket = req.body;
+
+                ticket.verificationStatus = "pending";
+                ticket.status = "published";
+                ticket.createdAt = new Date();
+
+                const result = await ticketsCollection.insertOne(ticket);
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+        app.get("/tickets/vendor/:email", async (req, res) => { //vendors ticket
+            try {
+                const email = req.params.email;
+
+                const result = await ticketsCollection
+                    .find({ vendorEmail: email })
+                    .toArray();
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+        app.patch("/tickets/:id", async (req, res) => { //update ticket
+            try {
+                const id = req.params.id;
+                const data = req.body;
+
+                const result = await ticketsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: data,
+                    }
+                );
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
+        app.delete("/tickets/:id", async (req, res) => { //deletes ticket
+            try {
+                const id = req.params.id;
+
+                const result = await ticketsCollection.deleteOne({
+                    _id: new ObjectId(id),
+                });
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
+        app.get("/bookings/vendor/:email", async (req, res) => { //Requested Bookings
+            try {
+                const email = req.params.email;
+
+                const result = await bookingsCollection
+                    .find({ vendorEmail: email })
+                    .toArray();
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
+        app.patch("/bookings/accept/:id", async (req, res) => { //Accept Booking
+            try {
+                const id = req.params.id;
+
+                const result = await bookingsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: {
+                            bookingStatus: "accepted",
+                        },
+                    }
+                );
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
+        app.patch("/bookings/reject/:id", async (req, res) => { // Reject Booking
+            try {
+                const id = req.params.id;
+
+                const result = await bookingsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: {
+                            bookingStatus: "rejected",
+                        },
+                    }
+                );
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
+        app.get("/vendor/revenue/:email", async (req, res) => {  //Revenue Overview
+            try {
+                const email = req.params.email;
+
+                const totalTickets = await ticketsCollection.countDocuments({
+                    vendorEmail: email,
+                });
+
+                const soldTickets = await bookingsCollection.countDocuments({
+                    vendorEmail: email,
+                    bookingStatus: "accepted",
+                });
+
+                const bookings = await bookingsCollection
+                    .find({
+                        vendorEmail: email,
+                        bookingStatus: "accepted",
+                    })
+                    .toArray();
+
+                const revenue = bookings.reduce(
+                    (sum, item) => sum + item.totalPrice,
+                    0
+                );
+
+                res.send({
+                    totalTickets,
+                    soldTickets,
+                    revenue,
+                });
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
 
 
 
