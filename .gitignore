@@ -1,2 +1,16 @@
-node_modules
+node_modules/
+dist/
+dist-ssr/
+*.local
 .env
+.env.local
+.env.development
+.env.production
+coverage/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
